@@ -1,33 +1,64 @@
 import random
+import time
+import matplotlib.pyplot as plt
+import heapq
+import matplotlib.pyplot as plt
 
-#快速选择算法（Quickselect），用来在 O(n) 平均时间复杂度内找到数组中第 k 大（或第 k 小）的元素。
-class Solution:
-    def quickselect(self, nums, l, r, k):
-        if l == r:
-            return nums[k]
-        # 随机选择基准值，避免最坏情况
-        pivot_idx = random.randint(l, r)
-        pivot = nums[pivot_idx]
-        nums[l], nums[pivot_idx] = nums[pivot_idx], nums[l]
+# ========== 优化后的快速排序 ==========
+def quicksort_optimized(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]  # 中间元素作为基准
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort_optimized(left) + middle + quicksort_optimized(right)
 
-        i, j = l - 1, r + 1
-        while i < j:
-            while True:
-                i += 1
-                if nums[i] >= pivot:
-                    break
-            while True:
-                j -= 1
-                if nums[j] <= pivot:
-                    break
-            if i < j:
-                nums[i], nums[j] = nums[j], nums[i]
 
-        if k <= j:
-            return self.quickselect(nums, l, j, k)
-        else:
-            return self.quickselect(nums, j + 1, r, k)
+# ========== 堆排序 ==========
+def heapsort(arr):
+    heapq.heapify(arr)
+    return [heapq.heappop(arr) for _ in range(len(arr))]
 
-    def findKthLargest(self, nums, k):
-        n = len(nums)
-        return self.quickselect(nums, 0, n - 1, n - k)
+
+# ========== 测试函数 ==========
+def test_performance():
+    sizes = [1000, 5000, 10000, 20000, 50000, 100000]  # 数组规模
+    quicksort_times = []
+    heapsort_times = []
+
+    for n in sizes:
+        # 生成随机数组
+        arr = [random.randint(0, 100000) for _ in range(n)]
+
+        # 快速排序时间
+        start = time.time()
+        quicksort_optimized(arr.copy())
+        end = time.time()
+        quicksort_times.append(end - start)
+
+        # 堆排序时间
+        start = time.time()
+        heapsort(arr.copy())
+        end = time.time()
+        heapsort_times.append(end - start)
+
+        print(f"数组规模: {n}, 快排时间: {quicksort_times[-1]:.6f}s, 堆排时间: {heapsort_times[-1]:.6f}s")
+
+    # ========== 绘制折线图 ==========
+    plt.rcParams['font.sans-serif'] = ['SimHei']  # 或者 ['Microsoft YaHei']
+    plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(sizes, quicksort_times, marker='o', label='优化快速排序')
+    plt.plot(sizes, heapsort_times, marker='s', label='堆排序')
+    plt.title('排序算法性能对比 (运行时间 / 数组规模)')
+    plt.xlabel('数组规模 n')
+    plt.ylabel('运行时间 (秒)')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+
+if __name__ == "__main__":
+    test_performance()
